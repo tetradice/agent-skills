@@ -21,14 +21,14 @@ metadata:
 
 ## 主要なコマンド
 
-このスキルでは主に `npx add-mcp` コマンドを使用してMCPサーバーを管理します。候補探索では、3 つの検索 API を 1 回のコマンドに集約した npm 公開済み CLI を優先して使います。
+このスキルでは主に `npx add-mcp` コマンドを使用してMCPサーバーを管理します。候補探索では、同じスキルフォルダの `script/` 配下に同梱した自己完結 JS を `node` で呼び出します。
 
 **主なコマンド:**
 
 - `npx add-mcp [npmパッケージ名]` - npmパッケージとして提供されるMCPサーバーをインストールする
 - `npx add-mcp "[実行コマンド]"` - stdio形式の任意のMCPサーバーをインストールする。ただし `[実行コマンド]` の中には1つ以上の引数を含んでいなければならない（＝半角スペースが1つ以上必要）
 - `npx add-mcp [HTTP URL]` - URLから直接MCPサーバーをインストールする
-- `npx @tetradice/mcp-server-search [検索語] --limit 30` - Official MCP Registry、Smithery、GitHub REST API を内部で並列検索し、統一 JSON を返す
+- `node script/mcp-server-search.js [検索語] --limit 30` - Official MCP Registry、Smithery、GitHub REST API を内部で並列検索し、統一 JSON を返す
 
 ## MCPサーバー導入のステップ
 
@@ -41,24 +41,24 @@ metadata:
 
 ### ステップ2：MCPサーバーを検索する
 
-候補探索では、npm 公開済み CLI `npx @tetradice/mcp-server-search [検索語]` を使って検索してください。この CLI は内部的に **Official MCP Registry**、**Smithery REST API**、**GitHub REST API** の 3 系統から情報を取得し、統一 JSON に正規化します。必要に応じて **mcp.so (MCP Directory)** を補助的に見ても構いませんが、推奨候補の選定は CLI で取得した情報を優先してください。
+候補探索では、同じスキルフォルダに同梱した `node script/mcp-server-search.js [検索語]` を使って検索してください。このスクリプトは内部的に **Official MCP Registry**、**Smithery REST API**、**GitHub REST API** の 3 系統から情報を取得し、統一 JSON に正規化します。必要に応じて **mcp.so (MCP Directory)** を補助的に見ても構いませんが、推奨候補の選定はスクリプトで取得した情報を優先してください。
 
 このスキルでは、**ユーザー要件を満たす公式提供と思われる MCP サーバーが見つかった場合、その候補を優先して扱ってください。** たとえば GitHub 連携を探していて GitHub 公式の MCP サーバーが存在し、必要なツールも満たしているなら、コミュニティ実装より先にその候補を提示します。
 
 ただし、公式候補でも必要なツールや運用条件を満たさない場合は、非公式候補を優先して構いません。その場合は「公式候補はあったが、今回は要件不足のため採用しない」と明示してください。
 
-このステップでは、`npx @tetradice/mcp-server-search [検索語]` の結果を基準に判断してください。CLI の `sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` がすべて `true` なら、内部的に Official MCP Registry、Smithery REST API、GitHub REST API の 3 系統を確認できているものとして扱います。
+このステップでは、`node script/mcp-server-search.js [検索語]` の結果を基準に判断してください。スクリプトの `sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` がすべて `true` なら、内部的に Official MCP Registry、Smithery REST API、GitHub REST API の 3 系統を確認できているものとして扱います。
 
 なお、`npx add-mcp find` は使用しないでください。このコマンドは、見つかったMCPサーバーをワークスペースに追加してしまうためです。
 
 #### 2-0. まず集約CLIで検索する
 
-まずは、以下のように集約 CLI を実行して検索してください。VS Code 側では外部アクセスの許可が 1 回で済み、スキル公開先でもこの npm パッケージ版を標準コマンドとして扱います。
+まずは、以下のように集約スクリプトを実行して検索してください。`SKILL.md` と同じフォルダに `script/` を維持しておくことで、公開 npm パッケージに依存せず同じ検索結果形式を使えます。
 
 実行例:
 
 ```bash
-npx @tetradice/mcp-server-search github --limit 30
+node script/mcp-server-search.js github --limit 30
 ```
 
 出力では最低限以下を確認してください。

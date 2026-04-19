@@ -21,14 +21,14 @@ Use this skill when the user does any of the following:
 
 ## Primary commands
 
-This skill mainly uses the `npx add-mcp` command to manage MCP servers. For candidate discovery, prefer the published npm CLI that aggregates three search APIs into a single command.
+This skill mainly uses the `npx add-mcp` command to manage MCP servers. For candidate discovery, use the self-contained JS file bundled under the same skill folder and invoke it with `node`.
 
 **Primary commands:**
 
 - `npx add-mcp [npm-package-name]` - Install an MCP server that is distributed as an npm package
 - `npx add-mcp "[execution-command]"` - Install any stdio-based MCP server. The quoted command must include at least one argument, which means it must contain at least one ASCII space.
 - `npx add-mcp [HTTP URL]` - Install an MCP server directly from a URL
-- `npx @tetradice/mcp-server-search [query] --limit 30` - Search Official MCP Registry, Smithery, and the GitHub REST API in parallel and return normalized JSON
+- `node script/mcp-server-search.js [query] --limit 30` - Search Official MCP Registry, Smithery, and the GitHub REST API in parallel and return normalized JSON
 
 ## Steps for introducing an MCP server
 
@@ -41,24 +41,24 @@ Identify exactly what the user wants:
 
 ### Step 2: Search for MCP servers
 
-For candidate discovery, use the published npm CLI `npx @tetradice/mcp-server-search [query]`. Internally, this CLI collects data from **Official MCP Registry**, **Smithery REST API**, and **GitHub REST API**, then normalizes the results into a common JSON format. You may consult **mcp.so (MCP Directory)** as a secondary source when useful, but prioritize the data returned by the CLI when selecting recommended candidates.
+For candidate discovery, use the local script `node script/mcp-server-search.js [query]` that is bundled with this skill. Internally, this script collects data from **Official MCP Registry**, **Smithery REST API**, and **GitHub REST API**, then normalizes the results into a common JSON format. You may consult **mcp.so (MCP Directory)** as a secondary source when useful, but prioritize the data returned by the script when selecting recommended candidates.
 
 If you find an MCP server that appears to be officially provided and it satisfies the user's requirements, treat that candidate as the preferred option. For example, if the user wants a GitHub integration and there is an official GitHub MCP server that provides the needed tools, present it before community implementations.
 
 However, if the official candidate does not satisfy the required tools or operational conditions, you may prioritize a non-official candidate instead. In that case, explicitly say that there was an official candidate but it was not selected because it did not meet the current requirements.
 
-Base your judgment in this step on the results of `npx @tetradice/mcp-server-search [query]`. If the CLI reports `sources.registry.ok`, `sources.smithery.ok`, and `sources.github.ok` all as `true`, treat that run as confirmation that Official MCP Registry, Smithery REST API, and GitHub REST API were all checked.
+Base your judgment in this step on the results of `node script/mcp-server-search.js [query]`. If the script reports `sources.registry.ok`, `sources.smithery.ok`, and `sources.github.ok` all as `true`, treat that run as confirmation that Official MCP Registry, Smithery REST API, and GitHub REST API were all checked.
 
 Do not use `npx add-mcp find`. That command adds the discovered MCP server directly into the workspace.
 
 #### 2-0. Search with the aggregated CLI first
 
-Start by running the aggregated CLI like this. In VS Code, this usually means you only need to approve external access once, and this npm package form is also the standard command expected where the skill is published.
+Start by running the aggregated script like this. Keep the `script/` directory next to `SKILL.md` so the skill can call the bundled implementation without depending on the published npm package.
 
 Example:
 
 ```bash
-npx @tetradice/mcp-server-search github --limit 30
+node script/mcp-server-search.js github --limit 30
 ```
 
 At minimum, confirm the following in the output.
