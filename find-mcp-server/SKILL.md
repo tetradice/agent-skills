@@ -1,6 +1,10 @@
 ---
 name: find-mcp-server
 description: 公開MCP(Model Context Protocol)サーバーの探索、比較、導入、add-mcp 接続を支援する。DB、外部API、ファイル操作、GitHub連携などで「〇〇のMCPサーバーはある？」「MCPツールを探して」「add-mcp で入れたい」といった依頼が出たら積極的に使い、候補探索から動作テストまで対応する。
+license: CC0
+metadata:
+  author: Dice <tetradice@gmail.com>
+  version: "1.0.0"
 ---
 
 # Find MCP Server（MCPサーバーの検索と導入）
