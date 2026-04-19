@@ -1,4 +1,4 @@
-# tetradice/agent-skills
+# @tetradice/agent-skills
 
 GitHub Copilot や互換エージェントで利用可能なAgent Skillです。
 
@@ -8,7 +8,7 @@ GitHub Copilot や互換エージェントで利用可能なAgent Skillです。
 
 ## インストール方法
 
-Node.js がインストールされている状態で、以下を実行してください。
+[Node.js](https://nodejs.org/ja) がインストールされている状態で、以下を実行してください。
 
 ```
 % npx skills add https://github.com/tetradice/agent-skills --skill find-mcp-server
