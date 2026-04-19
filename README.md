@@ -4,7 +4,7 @@ GitHub Copilot や互換エージェントで利用可能なAgent Skillです。
 
 ## 内容
 
-- `find-mcp-server`: 公開MCPサーバーの探索、比較、導入を支援するスキル
+- `find-mcp-server`: 公開MCPサーバーの検索とインストールを行うスキル
 
 ## インストール方法
 

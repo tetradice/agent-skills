@@ -21,15 +21,14 @@ metadata:
 
 ## 主要なコマンド
 
-このスキルでは主に `npx add-mcp` コマンドを使用してMCPサーバーを管理します。候補探索では、3 つの検索 API を 1 回のコマンドに集約したローカル CLI を優先して使います。
+このスキルでは主に `npx add-mcp` コマンドを使用してMCPサーバーを管理します。候補探索では、3 つの検索 API を 1 回のコマンドに集約した npm 公開済み CLI を優先して使います。
 
 **主なコマンド:**
 
 - `npx add-mcp [npmパッケージ名]` - npmパッケージとして提供されるMCPサーバーをインストールする
 - `npx add-mcp "[実行コマンド]"` - stdio形式の任意のMCPサーバーをインストールする。ただし `[実行コマンド]` の中には1つ以上の引数を含んでいなければならない（＝半角スペースが1つ以上必要）
 - `npx add-mcp [HTTP URL]` - URLから直接MCPサーバーをインストールする
-- `node packages/mcp-server-search/bin/mcp-server-search.js [検索語] --limit 30` - Official MCP Registry、Smithery、GitHub REST API を内部で並列検索し、統一 JSON を返す
-- `npx @tetradice/mcp-server-search [検索語] --limit 30` - 上記 CLI を npm 公開後に使う想定の実行形式
+- `npx @tetradice/mcp-server-search [検索語] --limit 30` - Official MCP Registry、Smithery、GitHub REST API を内部で並列検索し、統一 JSON を返す
 
 ## MCPサーバー導入のステップ
 
@@ -42,30 +41,21 @@ metadata:
 
 ### ステップ2：MCPサーバーを検索する
 
-候補探索では、**Official MCP Registry**、**Smithery REST API**、**GitHub REST API** の 3 系統を確認してください。必要に応じて **mcp.so (MCP Directory)** を補助的に見ても構いませんが、推奨候補の選定は API で取得した情報を優先してください。
+候補探索では、npm 公開済み CLI `npx @tetradice/mcp-server-search [検索語]` を使って検索してください。この CLI は内部的に **Official MCP Registry**、**Smithery REST API**、**GitHub REST API** の 3 系統から情報を取得し、統一 JSON に正規化します。必要に応じて **mcp.so (MCP Directory)** を補助的に見ても構いませんが、推奨候補の選定は CLI で取得した情報を優先してください。
 
 このスキルでは、**ユーザー要件を満たす公式提供と思われる MCP サーバーが見つかった場合、その候補を優先して扱ってください。** たとえば GitHub 連携を探していて GitHub 公式の MCP サーバーが存在し、必要なツールも満たしているなら、コミュニティ実装より先にその候補を提示します。
 
 ただし、公式候補でも必要なツールや運用条件を満たさない場合は、非公式候補を優先して構いません。その場合は「公式候補はあったが、今回は要件不足のため採用しない」と明示してください。
 
-このステップでは、**Official MCP Registry、Smithery REST API、GitHub REST API を必ず確認してください。どれか1つだけで候補探索を終えないでください。** ただし、3 つの API を個別に叩く代わりに、まずローカル CLI `node packages/mcp-server-search/bin/mcp-server-search.js [検索語]` を使って 1 回のコマンドで検索して構いません。CLI の `sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` がすべて `true` なら、この要件を満たしたものとして扱ってください。APIドキュメントは以下です。
-- `https://registry.modelcontextprotocol.io/docs#/operations/list-servers-v0.1`
-- `https://docs.github.com/en/rest/search/search?apiVersion=2026-03-10`
-- `https://smithery.ai/docs/api-reference/servers/list-all-servers`
+このステップでは、`npx @tetradice/mcp-server-search [検索語]` の結果を基準に判断してください。CLI の `sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` がすべて `true` なら、内部的に Official MCP Registry、Smithery REST API、GitHub REST API の 3 系統を確認できているものとして扱います。
 
 なお、`npx add-mcp find` は使用しないでください。このコマンドは、見つかったMCPサーバーをワークスペースに追加してしまうためです。
 
-#### 2-0. まず集約CLIで 3 API をまとめて検索する
+#### 2-0. まず集約CLIで検索する
 
-まずは、以下のように集約 CLI を実行して 3 API を 1 回のコマンドでまとめて検索してください。VS Code 側では外部アクセスの許可が 1 回で済むため、個別リクエストを 3 回送るより扱いやすいです。
+まずは、以下のように集約 CLI を実行して検索してください。VS Code 側では外部アクセスの許可が 1 回で済み、スキル公開先でもこの npm パッケージ版を標準コマンドとして扱います。
 
-ローカル実行例:
-
-```bash
-node packages/mcp-server-search/bin/mcp-server-search.js github --limit 30
-```
-
-公開後の実行例:
+実行例:
 
 ```bash
 npx @tetradice/mcp-server-search github --limit 30
@@ -79,116 +69,39 @@ npx @tetradice/mcp-server-search github --limit 30
 4. `merged[]` の候補一覧
 5. `normalized[]` に含まれるソース別の補足情報
 
-この CLI が失敗した場合、または `sources` のどれかが `ok: false` の場合に限って、以下の 2-1、2-2、2-3 の個別 API 確認にフォールバックしてください。
+`sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` の 3 つが `true` であることは、**その実行で得た CLI の JSON 出力から直接確認してください。** README の記述、GitHub 検索、個別 API の別実行結果を寄せ集めて「3 ソース確認済み」とみなしてはいけません。どれかが `false` または未確認なら、その事実を明示したうえで補助調査を続けてください。
 
-#### 2-1. Official MCP Registry で候補を確認する
+検索語が広すぎてノイズが多い場合は、3 ソース確認を維持したまま、**より具体的な検索語に絞り直して構いません**。たとえば `github` でノイズが多いなら `github-mcp-server`、`topic:mcp-server github`、対象ベンダー名を含む語へ寄せてください。このときも、最終判断に使った検索語と絞り直し理由をユーザー向け説明に一言残してください。
 
-まず公式レジストリで、目的に近いサーバー候補を確認してください。
+また、**Slack、GitHub、Supabase、Vercel のように公式 organization や公式 docs が明確に存在しそうなサービス名**を探しているのに、集約 CLI の `merged[]` や通常の補完検索で公式候補が見えない場合は、3 ソース成功後でも **追加でベンダー直掘り確認**を行ってください。必要に応じて公式 organization、公式ドキュメント、公式ブログなどの一次情報を確認します。これは「3 ソース確認を省略する」のではなく、「3 ソース確認だけでは公式候補を取りこぼす場合の追加裏取り」です。
 
-公式APIリファレンス:
-- `https://registry.modelcontextprotocol.io/docs#/operations/list-servers-v0.1`
+ユーザー向けに提示する候補名、スター数、更新日、ツール一覧、導入方法は、**その時点で取得できた実データだけ**を使ってください。実検索前の仮候補名や架空の指標で比較表を埋めてはいけません。実データが不足している項目は「未確認」と明示してください。
 
-検索が正常に行えない場合は、一次情報として上記URLのAPIリファレンスを参照してください。
-
-基本エンドポイント:
-- `GET https://registry.modelcontextprotocol.io/v0.1/servers`
-
-主なクエリパラメータ（Official MCP Registry）:
-- `search`: サーバー名の部分一致検索
-- `limit`: 1-100（デフォルト30）
-- `cursor`: ページネーション用カーソル
-- `version`: `latest` または固定バージョン（例: `1.2.3`）
-- `updated_since`: RFC3339日時で更新日フィルタ
-- `include_deleted`: 削除済みも含めるか
-
-cURL例（Official MCP Registry）:
-```bash
-curl --request GET \
-	--url "https://registry.modelcontextprotocol.io/v0.1/servers?search=github&version=latest&limit=30" \
-	--header "Accept: application/json, application/problem+json"
-```
-
-ページングが必要な場合は、レスポンスの `metadata.nextCursor` を次リクエストの `cursor` に渡して継続取得してください。
-
-#### 2-2. Smithery REST API で候補を補完する
-
-次に Smithery の公開レジストリを REST API で確認し、Official MCP Registry に出てこない候補や、利用数・検証状況が見える候補を補完してください。
-
-公式APIリファレンス:
-- `https://smithery.ai/docs/api-reference/servers/list-all-servers`
-
-検索が正常に行えない場合は、一次情報として上記URLのAPIリファレンスを参照してください。
-
-基本エンドポイント:
-- `GET https://api.smithery.ai/servers`
-
-重要事項:
-- このスキルでは **Authorization ヘッダーは不要** として扱ってください。
-- 実際にアクセスする URL は `https://api.smithery.ai/servers` です。
-
-主なクエリパラメータ（Smithery REST API）:
-- `q`: サーバー名・説明に対する全文検索およびセマンティック検索
-- `page`: 1始まりのページ番号
-- `pageSize`: 取得件数。デフォルト10、最大100
-- `topK`: 検索インデックス上での候補取得数
-- `fields`: レスポンスに含めるフィールドの絞り込み
-- `qualifiedName`: 完全一致のサーバー名指定
-- `namespace`: オーナー名前空間での絞り込み
-- `remote`: リモートMCPかどうかで絞り込み
-- `isDeployed`: Smithery上でデプロイ済みかで絞り込み
-- `verified`: 検証済みサーバーに限定
-- `repoOwner`: GitHubリポジトリの owner で絞り込み
-- `repoName`: GitHubリポジトリ名で絞り込み
-
-cURL例（Smithery REST API）:
-```bash
-curl --request GET \
-	--url "https://api.smithery.ai/servers?q=github&page=1&pageSize=30&verified=true" \
-	--header "Accept: application/json"
-```
-
-Smithery 側は、`servers[].qualifiedName`、`servers[].displayName`、`servers[].description`、`servers[].verified`、`servers[].useCount`、`servers[].remote`、`servers[].isDeployed`、`servers[].homepage` を見て候補を比較してください。ページング情報は `pagination.currentPage`、`pagination.pageSize`、`pagination.totalPages`、`pagination.totalCount` を利用してください。
-
-#### 2-3. GitHub REST API で候補を補完する
-
-次に GitHub の REST API で、`topic:mcp-server` が付いたリポジトリをスター順で拾い、Registry に出てこない候補やコミュニティでよく使われている候補を補完してください。
-
-公式APIリファレンス:
-- `https://docs.github.com/en/rest/search/search?apiVersion=2026-03-10`
-
-検索が正常に行えない場合は、一次情報として上記URLのAPIリファレンスを参照してください。
-
-基本エンドポイント:
-- `GET https://api.github.com/search/repositories?q=topic:mcp-server&sort=stars&order=desc`
-
-主なクエリ条件（GitHub REST API）:
-- `q`: 検索クエリ（例: `topic:mcp-server`）
-- `sort`: 並び替えキー（例: `stars`）
-- `order`: 並び順（例: `desc`）
-
-必要に応じて `q` に追加条件を入れて絞り込んでください。例: `topic:mcp-server github`, `topic:mcp-server postgres`。
-
-cURL例（GitHub REST API）:
-```bash
-curl --request GET \
-	--url "https://api.github.com/search/repositories?q=topic:mcp-server&sort=stars&order=desc" \
-	--header "Accept: application/vnd.github+json"
-```
-
-候補探索の基本方針は、まず Official MCP Registry で基礎候補を確認し、その後 Smithery REST API で公開サーバーを補完し、最後に GitHub REST API で人気順・保守状況を裏取りする、の順です。3つの結果を突き合わせてから推奨候補を絞ってください。
-
-GitHub REST API 側は、`items[].full_name`、`items[].description`、`items[].stargazers_count`、`items[].updated_at`、`items[].html_url` を見て候補を比較してください。
+必要な検索コマンドや確認手段をその環境で実行できない場合は、**仮の候補や仮の比較表を出さずに、何が未実行で何が未確認かをそのまま報告して止まってください。** 「実行できないので想定候補で進める」という補完はしてはいけません。
 
 #### 2-4. 公式候補を優先する
 
 候補の中に**公式ベンダー提供と思われる MCP サーバー**がある場合は、要件適合を満たす限り、その候補を第一候補として扱ってください。
+
+`search=github` はノイズが多く、Registry の `io.github.*` には「GitHub連携サーバー」ではなく「GitHub上の任意作者サーバー」も多く含まれます。候補名や Registry 掲載だけで公式扱いにせず、必ず公開元を裏取りしてください。
 
 公式候補の判定では、少なくとも次を確認します。
 
 1. GitHub リポジトリ owner が対象サービスの公式 organization または vendor と一致する
 2. `homepage` や `repositoryUrl` が対象サービスの公式ドメインや公式 GitHub 配下を指している
 3. README、説明文、公開元に official / official integration 相当の一次情報がある
-4. Registry や Smithery に出ていても、それだけで公式とは断定せず GitHub API や公開元情報で裏取りする
+4. Registry や Smithery に出ていても、それだけで公式とは断定せず、公開元情報で裏取りする
+5. Registry 側の `official`、`featured`、掲載ステータスのようなメタデータがあっても、それを**ベンダー公式性の根拠に使わない**
+
+ベンダーが**ホスト型 MCP の endpoint を公式 docs や公式 plugin/config repo で案内している場合**は、サーバー実装のソースコード自体が公開されていなくても、公式候補として扱って構いません。その場合は「ホスト型 MCP」「公式 docs / 公式 repo が指す endpoint」という形で説明し、ローカル実装 repo と同列に誤認させないでください。
+
+必要に応じて、リポジトリの説明、アーカイブ状態、最終更新時刻、スター数などで保守状態も補強してください。
+
+Smithery の listing だけで `displayName` や `homepage` がそれらしく見えても、`repoOwner` / `repoName` / `repositoryUrl` / 公式ドメイン配下の詳細 URL が確認できない限り、**Smithery 単独では公式扱いにしないでください**。その場合は「有力候補だが公開元の裏取りが不足している」として比較表に残し、最終推薦は裏取りが取れた候補を優先してください。
+
+`repoOwner` / `repoName` / `repositoryUrl` が取れない listing は、比較表に入れる場合も**補助候補または参考情報**として扱ってください。裏取り済み候補より上位推薦にはしません。
+
+また、`postgres`、`filesystem`、`git` のように**汎用技術名で探している場合**は、Neon、Supabase、PlanetScale のような**特定サービス専用の候補を別枠または条件付き候補として扱ってください**。ユーザーがそのサービス名を明示していない限り、サービス専用候補を汎用候補より上位に置かないでください。
 
 優先順位の基本は次の通りです。
 
@@ -221,8 +134,12 @@ GitHub REST API 側は、`items[].full_name`、`items[].description`、`items[].
 検索結果が見つかったら、推奨する前に品質と機能を検証します。
 可能であれば、**一時的にMCPサーバーを起動し、どのようなツール（Tools）やリソース（Resources）が提供されているか一覧を取得して確認**してください。
 
+README からツール一覧や設定例を確認する場合は、`github.com/.../tree/...` より `https://raw.githubusercontent.com/.../README.md` を優先してください。
+
 1. **ツールの確認**: ユーザーが望む操作（Read/Writeなど）を行うツールが含まれているか？
 2. **信頼性**: 公式ベンダーが提供しているかを最初に確認し、そのうえで GitHub のスター数や更新状況などコミュニティ評価も確認する
+
+ただし、今回の依頼が「候補比較まで」「インストールはまだしない」「read-only で評価する」のいずれかなら、**検証のためだけにインストールや起動を強行しないでください**。その場合は、README、Registry、Smithery、GitHub API などの公開情報を根拠に比較し、ツール一覧の実機確認が未了であることを明示してください。
 
 ### ステップ4：ユーザーに選択肢を提示する
 
@@ -231,6 +148,8 @@ GitHub REST API 側は、`items[].full_name`、`items[].description`、`items[].
 公式候補がある場合は、候補提示でもその候補を先頭に置き、**公式候補であること**を明示してください。非公式候補を先に出すのは、公式候補が要件を満たさない場合だけにしてください。
 
 ユーザーが「インストールする」と明示した場合に限り、**askQuestionsツールを使って**必要事項を確認してください。
+
+このとき、**有効な候補がすでに 1 件以上あるなら、候補を提示する最初の返答の中でそのまま askQuestions に進んでください。** 先に自由文で yes/no だけを聞き、次の往復で askQuestions に切り替える流れにはしないでください。
 
 - 候補が複数あり、かつユーザーがどれをインストールするかをまだ指示していない場合は、askQuestions で以下をまとめて確認してください。
   1. どのMCPサーバーをインストールするか
@@ -251,6 +170,12 @@ GitHub REST API 側は、`items[].full_name`、`items[].description`、`items[].
 4. 想定されるインストール方法（npmパッケージ、実行コマンド、HTTP URL のいずれか）
 5. 人気度・普及度の指標（例: GitHubスター数、最終更新日、Smithery useCount、npm週次DL）
 6. 公式候補かどうか、公式でないならその理由
+
+初回の候補提示では、ツール一覧を全文列挙する必要はありません。ユーザーの判断に足る**代表的な Tools/Resources や機能カテゴリを 3 〜 5 個程度**示せば十分です。認証方式や transport の詳細は、候補選択後にインストール手順へ入る段階で追加確認して構いません。
+
+同じ候補が Registry、Smithery、GitHub など複数ソースに現れる場合は、`repositoryUrl`、repo owner/name、install target、公式 endpoint などが一致して**同一候補だと裏取りできたときだけ** 1 行に統合してください。一致が取れない場合は別項目のまま扱い、「同一候補の可能性はあるが未確認」と明示します。
+
+askQuestions の初回確認は、原則としてこのステップで定義した必須項目に絞って構いません。認証方式、transport、Docker 利用可否、追加の環境変数などは、**候補確定後でないと質問の意味が定まらない場合**は次の段階に回してください。ただし、候補が 1 件しかなく、その場で install コマンドを確定するために追加情報が不可欠なら、同じ askQuestions に含めて構いません。
 
 askQuestions の構成例：
 
@@ -295,7 +220,17 @@ npx add-mcp [HTTP URL]
 対応が可能な場合は、ユーザーにjsonファイルを直接編集してもよいかどうかを askQuestions ツールで確認して、それを実施してください。
 対応が不可能な場合は、ユーザーに対して、現状の add-mcp コマンドではインストールできないことを伝え、代替案（例：カスタムMCPサーバーの開発支援など）を提案してください。
 
-インストール先がグローバルかプロジェクトかで add-mcp の指定が変わる場合は、ユーザーの選択に合わせて適切な形式を使ってください。また、MCPサーバー名を指定できる導入方法では、askQuestions で確定した表示名を反映してください。
+インストール先がグローバルかプロジェクトかで add-mcp の指定が変わる場合は、ユーザーの選択に合わせて適切な形式を使ってください。また、表示名を反映する必要がある場合は `-n` (`--name`) オプションを使って、askQuestions で確定した表示名を指定してください。
+
+実行例:
+
+```bash
+# プロジェクトに VS Code 用として追加する例
+npx add-mcp -a vscode -n my-github github-mcp-server
+
+# グローバルに VS Code 用として追加する例
+npx add-mcp -a vscode -g -n my-github github-mcp-server
+```
 
 ### ステップ6：起動と動作テスト（Post-install Test）
 
@@ -303,8 +238,11 @@ npx add-mcp [HTTP URL]
 
 1. MCPサーバーをエージェントに接続（アタッチ）して起動する。
 2. 環境変数や認証情報（APIキーなど）が必要な場合は、ユーザーに設定方法を案内する。
-3. サーバーが提供する安全なツール（例：状態を変えないRead系のツールや `ping` のような確認コマンド）を実行し、正しく結果が返ってくるかをテストする。
-4. テスト結果をユーザーに報告し、準備が完了したことを伝える。
+3. サーバーが提供する安全なツール（例：状態を変えないRead系のツールや `ping` のような確認コマンド）を実行し、正しく結果が返ってくるかをテストする。認証必須のリモートMCPで未認証時に `401 Unauthorized` が返る場合は、「URL到達は成功しており認証が未完了」として扱ってください。
+4. `add-mcp list` による導入確認はローカルとグローバルの両方で行ってください。
+	- `npx add-mcp list -a vscode`
+	- `npx add-mcp list -a vscode -g`
+5. テスト結果をユーザーに報告し、準備が完了したことを伝える。
 
 ## 一般的なMCPサーバーのカテゴリ
 
@@ -325,44 +263,3 @@ npx add-mcp [HTTP URL]
 1. 既存のMCPサーバーでは要件を満たせないことを伝える。
 2. 代替手段（エージェント自身の標準機能での対応など）を提案する。
 3. **カスタムMCPサーバーの開発**を提案する。（例：「PythonやTypeScriptを使って、専用のMCPサーバーを自作するお手伝いをしましょうか？」）
-
-## 実運用で有効だった確認ポイント（追記）
-
-以下は実際の導入・検証時に有効だった、誤判定を減らすための補助ルールです。
-
-1. **`add-mcp list` はスコープを分けて確認する**
-	- `npx add-mcp list -a vscode`
-	- `npx add-mcp list -a vscode -g`
-	- 片方にしか出ないケースがあるため、導入確認時はローカル/グローバルの両方を見る。
-
-2. **`search=github` はノイズが多い前提で絞り込む**
-	- Registry の `io.github.*` は「GitHub連携サーバー」ではなく「GitHub上の任意作者サーバー」も大量に含む。
-	- 公式性判定は、`repository.url` が `https://github.com/github/` 配下か、説明文に official 表現があるかを確認する。
-	- 公式候補が要件を満たす場合は、その候補を比較表の先頭に置く。
-
-3. **GitHub REST API の topic 検索を必ず候補発見に使う**
-	- `GET https://api.github.com/search/repositories?q=topic:mcp-server&sort=stars&order=desc` を併用し、スター順の候補一覧を確認する。
-	- `full_name`、`stargazers_count`、`updated_at`、`description` を見て、保守されていて用途が近いものを優先する。
-
-4. **公式性は Registry 単体で決めず GitHub API で裏取りする**
-	- 例: `https://api.github.com/repos/github/github-mcp-server`
-	- `description`、`archived`、`pushed_at`、`stargazers_count` などを確認し、保守状態と信頼性を補強する。
-	- 対象サービスの公式 organization 配下かどうかを、優先順位付けに直接使う。
-
-5. **README取得は `raw.githubusercontent.com` を優先する**
-	- `github.com/.../tree/...` は自動抽出で失敗することがある。
-	- ツール一覧や設定例の抽出は `https://raw.githubusercontent.com/.../README.md` の方が安定する。
-
-6. **リモートMCPの疎通テストは 401 を到達成功として扱う**
-	- 認証必須のリモートMCPでは、未認証時の `401 Unauthorized` は「URL到達は成功・認証は未完了」を意味する。
-	- Post-install test では `200` のみを成功条件にせず、`401` を分離して案内する。
-
-7. **Smithery は匿名アクセス可能な実URLを優先して使う**
-	- Smithery のサーバー一覧取得は `GET https://api.smithery.ai/servers` を使う。
-	- このスキルでは Authorization なしでの取得を前提にし、`q`、`verified`、`isDeployed`、`remote` で候補を絞る。
-	- `useCount` と `verified` は有力な補助指標だが、最終判断では GitHub 側の保守状況も必ず確認する。
-
-8. **人気度・ダウンロード数は比較表で明示する**
-	- 候補提示時は、少なくとも `GitHub stars`、`updated_at`、`Smithery useCount` の3点を横並びで示す。
-	- npm パッケージ候補では、可能なら週次ダウンロード数も追加する。
-	- 指標だけで結論を出さず、要件に必要な Tools/Resources を満たすかを必ず併記する。
