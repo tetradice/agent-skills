@@ -1,265 +1,265 @@
 ---
 name: find-mcp-server
-description: 公開MCP(Model Context Protocol)サーバーの探索、比較、導入、add-mcp 接続を支援する。DB、外部API、ファイル操作、GitHub連携などで「〇〇のMCPサーバーはある？」「MCPツールを探して」「add-mcp で入れたい」といった依頼が出たら積極的に使い、候補探索から動作テストまで対応する。
+description: Helps discover, compare, install, and connect public MCP (Model Context Protocol) servers through add-mcp. Use it proactively when the user asks for MCP servers for databases, external APIs, file operations, GitHub integrations, or similar needs.
 license: CC0
 metadata:
   author: Dice <tetradice@gmail.com>
   version: "1.0.0"
 ---
 
-# Find MCP Server（MCPサーバーの検索と導入）
+# Find MCP Server (Search and Installation)
 
-このスキルは、公開されているMCPサーバーのエコシステムから、ユーザーの目的に最も合致するサーバーを発見、検証し、インストールから動作テストまでを一貫して支援します。
+This skill helps the user discover the public MCP server that best matches their goal, validate it, install it, and run a basic post-install test.
 
-## このスキルを使用するタイミング
+## When to use this skill
 
-ユーザーが以下のようなアクションをした場合に使用します：
+Use this skill when the user does any of the following:
 
-- 「Xと連携できるMCPサーバーはあるか」「X用のツールを探して」と尋ねてきたとき
-- エージェントに新しい外部連携機能（データベース、API、ツールなど）を追加したいと希望したとき
-- 既存のシステムやサービスをAIエージェントから操作したいと言及したとき
+- Asks whether there is an MCP server that can integrate with a target such as X, or asks you to find an MCP tool for X
+- Wants to add a new external integration to the agent, such as a database, API, or tool
+- Mentions controlling an existing system or service from an AI agent
 
-## 主要なコマンド
+## Primary commands
 
-このスキルでは主に `npx add-mcp` コマンドを使用してMCPサーバーを管理します。候補探索では、3 つの検索 API を 1 回のコマンドに集約した npm 公開済み CLI を優先して使います。
+This skill mainly uses the `npx add-mcp` command to manage MCP servers. For candidate discovery, prefer the published npm CLI that aggregates three search APIs into a single command.
 
-**主なコマンド:**
+**Primary commands:**
 
-- `npx add-mcp [npmパッケージ名]` - npmパッケージとして提供されるMCPサーバーをインストールする
-- `npx add-mcp "[実行コマンド]"` - stdio形式の任意のMCPサーバーをインストールする。ただし `[実行コマンド]` の中には1つ以上の引数を含んでいなければならない（＝半角スペースが1つ以上必要）
-- `npx add-mcp [HTTP URL]` - URLから直接MCPサーバーをインストールする
-- `npx @tetradice/mcp-server-search [検索語] --limit 30` - Official MCP Registry、Smithery、GitHub REST API を内部で並列検索し、統一 JSON を返す
+- `npx add-mcp [npm-package-name]` - Install an MCP server that is distributed as an npm package
+- `npx add-mcp "[execution-command]"` - Install any stdio-based MCP server. The quoted command must include at least one argument, which means it must contain at least one ASCII space.
+- `npx add-mcp [HTTP URL]` - Install an MCP server directly from a URL
+- `npx @tetradice/mcp-server-search [query] --limit 30` - Search Official MCP Registry, Smithery, and the GitHub REST API in parallel and return normalized JSON
 
-## MCPサーバー導入のステップ
+## Steps for introducing an MCP server
 
-### ステップ1：ユーザーのニーズを理解する
+### Step 1: Understand the user's need
 
-ユーザーが何を求めているのかを正確に把握します：
+Identify exactly what the user wants:
 
-1. 連携したい対象（例：PostgreSQL, GitHub, Slack, Notionなど）
-2. 実行したい具体的な操作（例：クエリの実行、PRの作成、メッセージの送信など）
+1. The target they want to integrate with, such as PostgreSQL, GitHub, Slack, or Notion
+2. The concrete actions they want to perform, such as running queries, creating pull requests, or sending messages
 
-### ステップ2：MCPサーバーを検索する
+### Step 2: Search for MCP servers
 
-候補探索では、npm 公開済み CLI `npx @tetradice/mcp-server-search [検索語]` を使って検索してください。この CLI は内部的に **Official MCP Registry**、**Smithery REST API**、**GitHub REST API** の 3 系統から情報を取得し、統一 JSON に正規化します。必要に応じて **mcp.so (MCP Directory)** を補助的に見ても構いませんが、推奨候補の選定は CLI で取得した情報を優先してください。
+For candidate discovery, use the published npm CLI `npx @tetradice/mcp-server-search [query]`. Internally, this CLI collects data from **Official MCP Registry**, **Smithery REST API**, and **GitHub REST API**, then normalizes the results into a common JSON format. You may consult **mcp.so (MCP Directory)** as a secondary source when useful, but prioritize the data returned by the CLI when selecting recommended candidates.
 
-このスキルでは、**ユーザー要件を満たす公式提供と思われる MCP サーバーが見つかった場合、その候補を優先して扱ってください。** たとえば GitHub 連携を探していて GitHub 公式の MCP サーバーが存在し、必要なツールも満たしているなら、コミュニティ実装より先にその候補を提示します。
+If you find an MCP server that appears to be officially provided and it satisfies the user's requirements, treat that candidate as the preferred option. For example, if the user wants a GitHub integration and there is an official GitHub MCP server that provides the needed tools, present it before community implementations.
 
-ただし、公式候補でも必要なツールや運用条件を満たさない場合は、非公式候補を優先して構いません。その場合は「公式候補はあったが、今回は要件不足のため採用しない」と明示してください。
+However, if the official candidate does not satisfy the required tools or operational conditions, you may prioritize a non-official candidate instead. In that case, explicitly say that there was an official candidate but it was not selected because it did not meet the current requirements.
 
-このステップでは、`npx @tetradice/mcp-server-search [検索語]` の結果を基準に判断してください。CLI の `sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` がすべて `true` なら、内部的に Official MCP Registry、Smithery REST API、GitHub REST API の 3 系統を確認できているものとして扱います。
+Base your judgment in this step on the results of `npx @tetradice/mcp-server-search [query]`. If the CLI reports `sources.registry.ok`, `sources.smithery.ok`, and `sources.github.ok` all as `true`, treat that run as confirmation that Official MCP Registry, Smithery REST API, and GitHub REST API were all checked.
 
-なお、`npx add-mcp find` は使用しないでください。このコマンドは、見つかったMCPサーバーをワークスペースに追加してしまうためです。
+Do not use `npx add-mcp find`. That command adds the discovered MCP server directly into the workspace.
 
-#### 2-0. まず集約CLIで検索する
+#### 2-0. Search with the aggregated CLI first
 
-まずは、以下のように集約 CLI を実行して検索してください。VS Code 側では外部アクセスの許可が 1 回で済み、スキル公開先でもこの npm パッケージ版を標準コマンドとして扱います。
+Start by running the aggregated CLI like this. In VS Code, this usually means you only need to approve external access once, and this npm package form is also the standard command expected where the skill is published.
 
-実行例:
+Example:
 
 ```bash
 npx @tetradice/mcp-server-search github --limit 30
 ```
 
-出力では最低限以下を確認してください。
+At minimum, confirm the following in the output.
 
 1. `sources.registry.ok`
 2. `sources.smithery.ok`
 3. `sources.github.ok`
-4. `merged[]` の候補一覧
-5. `normalized[]` に含まれるソース別の補足情報
+4. The candidates in `merged[]`
+5. Source-specific details in `normalized[]`
 
-`sources.registry.ok`、`sources.smithery.ok`、`sources.github.ok` の 3 つが `true` であることは、**その実行で得た CLI の JSON 出力から直接確認してください。** README の記述、GitHub 検索、個別 API の別実行結果を寄せ集めて「3 ソース確認済み」とみなしてはいけません。どれかが `false` または未確認なら、その事実を明示したうえで補助調査を続けてください。
+You must confirm that `sources.registry.ok`, `sources.smithery.ok`, and `sources.github.ok` are all `true` directly from the JSON output of that specific CLI run. Do not combine README text, GitHub searches, or separate API calls and then claim that all three sources were checked. If any of them is `false` or still unverified, say so explicitly and continue only as supplemental investigation.
 
-検索語が広すぎてノイズが多い場合は、3 ソース確認を維持したまま、**より具体的な検索語に絞り直して構いません**。たとえば `github` でノイズが多いなら `github-mcp-server`、`topic:mcp-server github`、対象ベンダー名を含む語へ寄せてください。このときも、最終判断に使った検索語と絞り直し理由をユーザー向け説明に一言残してください。
+If the query is too broad and produces too much noise, you may narrow it while preserving the three-source check. For example, if `github` is too noisy, narrow it to `github-mcp-server`, `topic:mcp-server github`, or a query that includes the vendor name. When you do this, leave a short note in the user-facing explanation describing the final query and why you narrowed it.
 
-また、**Slack、GitHub、Supabase、Vercel のように公式 organization や公式 docs が明確に存在しそうなサービス名**を探しているのに、集約 CLI の `merged[]` や通常の補完検索で公式候補が見えない場合は、3 ソース成功後でも **追加でベンダー直掘り確認**を行ってください。必要に応じて公式 organization、公式ドキュメント、公式ブログなどの一次情報を確認します。これは「3 ソース確認を省略する」のではなく、「3 ソース確認だけでは公式候補を取りこぼす場合の追加裏取り」です。
+Also, if the user is looking for a service name that likely has an official organization or official docs, such as Slack, GitHub, Supabase, or Vercel, but no official-looking candidate appears in `merged[]` or standard follow-up search, perform an additional direct vendor check even after all three sources succeed. Verify primary sources such as the official organization, official docs, or the vendor's official blog as needed. This is not a replacement for the three-source check. It is an additional verification step to avoid missing official candidates.
 
-ユーザー向けに提示する候補名、スター数、更新日、ツール一覧、導入方法は、**その時点で取得できた実データだけ**を使ってください。実検索前の仮候補名や架空の指標で比較表を埋めてはいけません。実データが不足している項目は「未確認」と明示してください。
+When presenting candidates to the user, only use real data that has already been retrieved at that point for names, star counts, update dates, tool lists, and installation methods. Do not populate a comparison table with hypothetical candidates or invented metrics before doing the actual search. Mark missing items as unverified.
 
-必要な検索コマンドや確認手段をその環境で実行できない場合は、**仮の候補や仮の比較表を出さずに、何が未実行で何が未確認かをそのまま報告して止まってください。** 「実行できないので想定候補で進める」という補完はしてはいけません。
+If the required search commands or verification steps cannot be executed in the environment, do not fabricate tentative candidates or a speculative comparison table. Report exactly what was not run and what remains unverified, then stop there.
 
-#### 2-4. 公式候補を優先する
+#### 2-4. Prioritize official candidates
 
-候補の中に**公式ベンダー提供と思われる MCP サーバー**がある場合は、要件適合を満たす限り、その候補を第一候補として扱ってください。
+If one of the candidates appears to be an MCP server provided by the official vendor, treat it as the top candidate as long as it satisfies the user's requirements.
 
-`search=github` はノイズが多く、Registry の `io.github.*` には「GitHub連携サーバー」ではなく「GitHub上の任意作者サーバー」も多く含まれます。候補名や Registry 掲載だけで公式扱いにせず、必ず公開元を裏取りしてください。
+`search=github` is noisy, and registry entries under `io.github.*` can include arbitrary servers hosted on GitHub rather than GitHub integration servers. Do not treat a candidate as official based only on the name or registry listing. Always verify the publisher.
 
-公式候補の判定では、少なくとも次を確認します。
+To judge whether a candidate is official, confirm at least the following.
 
-1. GitHub リポジトリ owner が対象サービスの公式 organization または vendor と一致する
-2. `homepage` や `repositoryUrl` が対象サービスの公式ドメインや公式 GitHub 配下を指している
-3. README、説明文、公開元に official / official integration 相当の一次情報がある
-4. Registry や Smithery に出ていても、それだけで公式とは断定せず、公開元情報で裏取りする
-5. Registry 側の `official`、`featured`、掲載ステータスのようなメタデータがあっても、それを**ベンダー公式性の根拠に使わない**
+1. The GitHub repository owner matches the target service's official organization or vendor
+2. `homepage` or `repositoryUrl` points to the target service's official domain or official GitHub namespace
+3. The README, description, or publisher information contains primary-source evidence equivalent to official or official integration
+4. Even if it appears in Registry or Smithery, do not conclude that it is official without verifying the publisher information
+5. Even if Registry exposes metadata such as `official`, `featured`, or listing status, do not use that as proof of vendor official status
 
-ベンダーが**ホスト型 MCP の endpoint を公式 docs や公式 plugin/config repo で案内している場合**は、サーバー実装のソースコード自体が公開されていなくても、公式候補として扱って構いません。その場合は「ホスト型 MCP」「公式 docs / 公式 repo が指す endpoint」という形で説明し、ローカル実装 repo と同列に誤認させないでください。
+If the vendor documents a hosted MCP endpoint in official docs or an official plugin/config repository, you may still treat it as an official candidate even if the server implementation source code is not public. In that case, describe it as a hosted MCP endpoint referenced by official docs or an official repository, and do not present it as equivalent to a local OSS implementation repository.
 
-必要に応じて、リポジトリの説明、アーカイブ状態、最終更新時刻、スター数などで保守状態も補強してください。
+As needed, reinforce the maintenance assessment by checking the repository description, archived status, last update time, star count, and similar signals.
 
-Smithery の listing だけで `displayName` や `homepage` がそれらしく見えても、`repoOwner` / `repoName` / `repositoryUrl` / 公式ドメイン配下の詳細 URL が確認できない限り、**Smithery 単独では公式扱いにしないでください**。その場合は「有力候補だが公開元の裏取りが不足している」として比較表に残し、最終推薦は裏取りが取れた候補を優先してください。
+Even if a Smithery listing has a plausible-looking `displayName` or `homepage`, do not treat it as official based on Smithery alone unless you can confirm `repoOwner`, `repoName`, `repositoryUrl`, or a detailed URL under the official vendor domain. In that case, keep it in the comparison table as a promising candidate with insufficient publisher verification, and prioritize fully verified candidates in the final recommendation.
 
-`repoOwner` / `repoName` / `repositoryUrl` が取れない listing は、比較表に入れる場合も**補助候補または参考情報**として扱ってください。裏取り済み候補より上位推薦にはしません。
+If a listing does not expose `repoOwner`, `repoName`, or `repositoryUrl`, treat it only as a supplemental candidate or reference entry even when you include it in the comparison table. Do not rank it above candidates whose publisher has been verified.
 
-また、`postgres`、`filesystem`、`git` のように**汎用技術名で探している場合**は、Neon、Supabase、PlanetScale のような**特定サービス専用の候補を別枠または条件付き候補として扱ってください**。ユーザーがそのサービス名を明示していない限り、サービス専用候補を汎用候補より上位に置かないでください。
+Also, when the user is searching for a generic technology name such as `postgres`, `filesystem`, or `git`, treat service-specific candidates such as Neon, Supabase, or PlanetScale as separate or conditional candidates. Unless the user explicitly named that service, do not rank a service-specific candidate above a generic one.
 
-優先順位の基本は次の通りです。
+The basic priority order is as follows.
 
-1. 要件を満たす公式候補
-2. 要件を満たす非公式候補のうち、安全性・保守性が高いもの
-3. その中で人気度・普及度が高いもの
+1. Official candidates that satisfy the requirements
+2. Non-official candidates that satisfy the requirements and have stronger safety and maintenance signals
+3. Among those, candidates with stronger popularity and adoption
 
-例:
+Examples:
 
-- GitHub 向け MCP サーバーを探していて `github/github-mcp-server` のような GitHub 公式候補が見つかり、必要なツールを満たすなら最優先で提示する
-- 公式候補が read 系しか持たず、ユーザーが issue 作成や PR 操作を必要としている場合は、より適合する非公式候補を上位にしてよい
+- If you are looking for a GitHub MCP server and find an official GitHub candidate such as `github/github-mcp-server` that provides the required tools, present it first
+- If the official candidate only supports read-oriented tools while the user needs issue creation or pull request operations, it is acceptable to rank a better-fitting non-official candidate above it
 
-#### 2-5. 人気度・普及度の指標を必ず比較する
+#### 2-5. Always compare popularity and adoption metrics
 
-候補を絞り込むときは、機能一致だけでなく、**人気度・普及度の定量指標**を必ず確認してください。特に「同等機能の候補が複数ある場合」は、以下の指標で優先順位を付けます。
+When narrowing candidates, verify not only functional fit but also quantitative popularity and adoption indicators. This is especially important when multiple candidates provide similar functionality.
 
-1. GitHub の `stargazers_count`（コミュニティ支持）
-2. GitHub の `updated_at`（最近も保守されているか）
-3. Smithery の `useCount` と `verified`（実利用と検証状況）
-4. npm パッケージの場合は週次ダウンロード数（例: npm registry API や npmjs の公開統計で確認）
+1. GitHub `stargazers_count` for community support
+2. GitHub `updated_at` for recent maintenance activity
+3. Smithery `useCount` and `verified` for actual usage and verification status
+4. Weekly download counts for npm packages, for example via the npm registry API or public npmjs statistics
 
-注意点:
-- 公式候補が要件を満たすなら、人気度だけで非公式候補を上位にしない
-- スター数やダウンロード数が高くても、目的のツールが不足していれば採用しない
-- 逆に利用数が少なくても、公式提供・高適合であれば候補として残す
-- 最終判断は「機能適合 > 公式性を含む安全性/保守性 > 人気度」の順で行う
+Notes:
+- If an official candidate satisfies the requirements, do not rank a non-official candidate higher based only on popularity
+- Do not adopt a candidate just because star count or download count is high if the necessary tools are missing
+- Conversely, even if usage numbers are low, keep a candidate if it is official and highly relevant
+- The final judgment order is functional fit, then safety and maintenance including official status, then popularity
 
-### ステップ3：品質の検証とツールの事前確認（重要）
+### Step 3: Validate quality and pre-check tools (important)
 
-検索結果が見つかったら、推奨する前に品質と機能を検証します。
-可能であれば、**一時的にMCPサーバーを起動し、どのようなツール（Tools）やリソース（Resources）が提供されているか一覧を取得して確認**してください。
+After finding search results, validate the quality and functionality before recommending them.
+If possible, temporarily start the MCP server and inspect the list of provided tools and resources.
 
-README からツール一覧や設定例を確認する場合は、`github.com/.../tree/...` より `https://raw.githubusercontent.com/.../README.md` を優先してください。
+If you are checking tool lists or configuration examples from a README, prefer `https://raw.githubusercontent.com/.../README.md` over `github.com/.../tree/...`.
 
-1. **ツールの確認**: ユーザーが望む操作（Read/Writeなど）を行うツールが含まれているか？
-2. **信頼性**: 公式ベンダーが提供しているかを最初に確認し、そのうえで GitHub のスター数や更新状況などコミュニティ評価も確認する
+1. **Tool check**: Does the server include the tools the user needs for the desired operations, such as read or write?
+2. **Reliability**: First confirm whether the official vendor provides it, then also check community signals such as GitHub stars and update status
 
-ただし、今回の依頼が「候補比較まで」「インストールはまだしない」「read-only で評価する」のいずれかなら、**検証のためだけにインストールや起動を強行しないでください**。その場合は、README、Registry、Smithery、GitHub API などの公開情報を根拠に比較し、ツール一覧の実機確認が未了であることを明示してください。
+However, if the current request is only to compare candidates, not to install yet, or to evaluate in read-only mode, do not force installation or startup only for validation. In that case, compare candidates based on public information such as README files, Registry, Smithery, and the GitHub API, and explicitly state that live verification of the tool list has not been completed.
 
-### ステップ4：ユーザーに選択肢を提示する
+### Step 4: Present options to the user
 
-要件を満たすMCPサーバーを見つけたら、まず候補情報を簡潔に提示し、**その中のどれかをインストールするかどうか**をユーザーに確認してください。この確認は通常の会話で行って構いません。
+Once you find MCP servers that satisfy the requirements, first present the candidate information briefly and confirm whether the user wants to install one of them. This confirmation may happen in normal conversation.
 
-公式候補がある場合は、候補提示でもその候補を先頭に置き、**公式候補であること**を明示してください。非公式候補を先に出すのは、公式候補が要件を満たさない場合だけにしてください。
+If there is an official candidate, place it first in the presented options and clearly state that it is official. Do not list a non-official candidate first unless the official candidate does not satisfy the requirements.
 
-ユーザーが「インストールする」と明示した場合に限り、**askQuestionsツールを使って**必要事項を確認してください。
+Only when the user explicitly says they want to install should you use the `askQuestions` tool to confirm the necessary details.
 
-このとき、**有効な候補がすでに 1 件以上あるなら、候補を提示する最初の返答の中でそのまま askQuestions に進んでください。** 先に自由文で yes/no だけを聞き、次の往復で askQuestions に切り替える流れにはしないでください。
+At that point, if there is already at least one valid candidate, move directly into `askQuestions` in the first reply that presents the candidates. Do not ask for a freeform yes or no first and only switch to `askQuestions` in the next turn.
 
-- 候補が複数あり、かつユーザーがどれをインストールするかをまだ指示していない場合は、askQuestions で以下をまとめて確認してください。
-  1. どのMCPサーバーをインストールするか
-  2. プロジェクトにインストールするか、グローバルにインストールするか
-  3. MCPサーバーの表示名をどうするか
+- If there are multiple candidates and the user has not yet specified which one to install, use `askQuestions` to confirm all of the following.
+  1. Which MCP server to install
+  2. Whether to install it for the project or globally
+  3. What display name to use for the MCP server
 
-- 候補が1件だけの場合、または複数候補でもインストール対象がすでに明示されている場合は、askQuestions で以下を確認してください。
-  1. プロジェクトにインストールするか、グローバルにインストールするか
-  2. MCPサーバーの表示名をどうするか
+- If there is only one candidate, or the install target is already clear even with multiple candidates, use `askQuestions` to confirm the following.
+  1. Whether to install it for the project or globally
+  2. What display name to use for the MCP server
 
-ユーザーが「インストールしない」と答えた場合は、その時点で処理を終了してください。
+If the user says they do not want to install, stop the process at that point.
 
-質問時は、各候補について少なくとも以下の情報を先に示してください。
+Before asking, show at least the following for each candidate.
 
-1. MCPサーバー名
-2. 概要
-3. （ステップ3で確認した）主要なツールや機能
-4. 想定されるインストール方法（npmパッケージ、実行コマンド、HTTP URL のいずれか）
-5. 人気度・普及度の指標（例: GitHubスター数、最終更新日、Smithery useCount、npm週次DL）
-6. 公式候補かどうか、公式でないならその理由
+1. MCP server name
+2. Summary
+3. Main tools or capabilities confirmed in Step 3
+4. Expected installation method, whether npm package, execution command, or HTTP URL
+5. Popularity and adoption indicators such as GitHub stars, last update date, Smithery `useCount`, or weekly npm downloads
+6. Whether it is an official candidate, and if not, why not
 
-初回の候補提示では、ツール一覧を全文列挙する必要はありません。ユーザーの判断に足る**代表的な Tools/Resources や機能カテゴリを 3 〜 5 個程度**示せば十分です。認証方式や transport の詳細は、候補選択後にインストール手順へ入る段階で追加確認して構いません。
+In the initial candidate presentation, you do not need to enumerate the full tool list. It is enough to show three to five representative tools, resources, or capability categories that are sufficient for the user's decision. Authentication methods and transport details can be confirmed after the candidate is chosen and you move into installation.
 
-同じ候補が Registry、Smithery、GitHub など複数ソースに現れる場合は、`repositoryUrl`、repo owner/name、install target、公式 endpoint などが一致して**同一候補だと裏取りできたときだけ** 1 行に統合してください。一致が取れない場合は別項目のまま扱い、「同一候補の可能性はあるが未確認」と明示します。
+If the same candidate appears from multiple sources such as Registry, Smithery, and GitHub, merge them into a single row only when you have verified that they refer to the same candidate through matching `repositoryUrl`, repo owner/name, install target, official endpoint, or equivalent evidence. If not, keep them separate and explicitly say that they may be the same candidate but it is not confirmed.
 
-askQuestions の初回確認は、原則としてこのステップで定義した必須項目に絞って構いません。認証方式、transport、Docker 利用可否、追加の環境変数などは、**候補確定後でないと質問の意味が定まらない場合**は次の段階に回してください。ただし、候補が 1 件しかなく、その場で install コマンドを確定するために追加情報が不可欠なら、同じ askQuestions に含めて構いません。
+As a rule, the first `askQuestions` set should stay limited to the required items defined in this step. Authentication method, transport, Docker availability, and additional environment variables should be deferred if they only become meaningful after the candidate is fixed. However, if there is only one candidate and extra information is required immediately to finalize the install command, you may include it in the same `askQuestions` call.
 
-askQuestions の構成例：
+Example `askQuestions` structure:
 
 ```
-ご要望に合う候補が2件あります。インストールする場合は、askQuestionsツールで必要事項を選択してください。
+There are two candidates that fit your request. If you want to install one, use the askQuestions tool to choose the required details.
 
-- 候補A: mcp-server-github
-	- 概要: GitHubリポジトリの検索、Issue作成、PRレビューに対応
-	- 主なツール: search_repositories, create_issue
-	- 導入方法: npmパッケージ
-- 候補B: github-mcp-server
-	- 概要: GitHubのリポジトリ操作とIssue参照に対応
-	- 主なツール: search_code, list_issues
-	- 導入方法: npmパッケージ
+- Candidate A: mcp-server-github
+	- Summary: Supports GitHub repository search, issue creation, and pull request review
+	- Main tools: search_repositories, create_issue
+	- Installation method: npm package
+- Candidate B: github-mcp-server
+	- Summary: Supports GitHub repository operations and issue lookup
+	- Main tools: search_code, list_issues
+	- Installation method: npm package
 
-askQuestionsで以下を確認する:
-1. どのMCPサーバーをインストールするか（未指定の場合のみ）
-2. プロジェクトにインストールするか、グローバルにインストールするか
-3. MCPサーバーの表示名をどうするか
+Use askQuestions to confirm:
+1. Which MCP server to install, if not already specified
+2. Whether to install it for the project or globally
+3. What display name to use for the MCP server
 ```
 
-### ステップ5：インストールの実行
+### Step 5: Run the installation
 
-ユーザーがインストールを希望し、askQuestions でインストール対象・インストール先・表示名が確定した場合は、その選択結果に従ってインストールを実行します。ユーザーが「インストールしない」と答えた場合は、そこで処理を終了してください。
+If the user wants installation and `askQuestions` has fixed the install target, scope, and display name, execute the installation according to those choices. If the user says not to install, stop there.
 
-**npmパッケージの場合 (`npx -y [npmパッケージ名]` で実行できるMCPサーバーの場合) :**
+**For npm package-based servers, meaning servers that can be run with `npx -y [npm-package-name]`:**
 ```bash
-npx add-mcp [npmパッケージ名]
+npx add-mcp [npm-package-name]
 ```
 
-**上記以外の、stdio形式で1つ以上の引数を含むMCPサーバーの場合:**
+**For other stdio-based MCP servers whose execution command includes at least one argument:**
 ```bash
-npx add-mcp "[実行コマンド 引数1 引数2 ...]"
+npx add-mcp "[execution-command arg1 arg2 ...]"
 ```
 
-**HTTP URL（直接指定）の場合:**
+**For direct HTTP URL installation:**
 ```bash
 npx add-mcp [HTTP URL]
 ```
 
-上記のどれにも該当しない場合は、MCP用のjsonファイルを手動で編集することで対応できそうかどうかを確認してください。
-対応が可能な場合は、ユーザーにjsonファイルを直接編集してもよいかどうかを askQuestions ツールで確認して、それを実施してください。
-対応が不可能な場合は、ユーザーに対して、現状の add-mcp コマンドではインストールできないことを伝え、代替案（例：カスタムMCPサーバーの開発支援など）を提案してください。
+If none of those forms applies, check whether the installation can be handled by manually editing the MCP JSON file.
+If that is possible, use the `askQuestions` tool to confirm whether the user is okay with directly editing the JSON file, then do so.
+If that is not possible, tell the user that the current `add-mcp` command cannot install it and propose an alternative, such as helping them build a custom MCP server.
 
-インストール先がグローバルかプロジェクトかで add-mcp の指定が変わる場合は、ユーザーの選択に合わせて適切な形式を使ってください。また、表示名を反映する必要がある場合は `-n` (`--name`) オプションを使って、askQuestions で確定した表示名を指定してください。
+If `add-mcp` uses different options for global versus project installation, select the appropriate form based on the user's choice. If the display name needs to be reflected, use the `-n` or `--name` option with the value confirmed through `askQuestions`.
 
-実行例:
+Example:
 
 ```bash
-# プロジェクトに VS Code 用として追加する例
+# Add it for VS Code at the project level
 npx add-mcp -a vscode -n my-github github-mcp-server
 
-# グローバルに VS Code 用として追加する例
+# Add it for VS Code globally
 npx add-mcp -a vscode -g -n my-github github-mcp-server
 ```
 
-### ステップ6：起動と動作テスト（Post-install Test）
+### Step 6: Start it and run a post-install test
 
-インストールが完了したら、**必ず実際のMCPサーバーの起動と簡単な動作テストを行ってください。**
+After installation, always start the actual MCP server and run a basic functionality check.
 
-1. MCPサーバーをエージェントに接続（アタッチ）して起動する。
-2. 環境変数や認証情報（APIキーなど）が必要な場合は、ユーザーに設定方法を案内する。
-3. サーバーが提供する安全なツール（例：状態を変えないRead系のツールや `ping` のような確認コマンド）を実行し、正しく結果が返ってくるかをテストする。認証必須のリモートMCPで未認証時に `401 Unauthorized` が返る場合は、「URL到達は成功しており認証が未完了」として扱ってください。
-4. `add-mcp list` による導入確認はローカルとグローバルの両方で行ってください。
+1. Attach the MCP server to the agent and start it
+2. If environment variables or credentials such as API keys are required, explain to the user how to set them
+3. Run a safe tool exposed by the server, such as a read-only tool or a `ping`-style check, and confirm that it returns a valid result. If an authentication-required remote MCP responds with `401 Unauthorized`, treat that as successful endpoint reachability with incomplete authentication.
+4. Verify the installation with `add-mcp list` in both local and global scopes
 	- `npx add-mcp list -a vscode`
 	- `npx add-mcp list -a vscode -g`
-5. テスト結果をユーザーに報告し、準備が完了したことを伝える。
+5. Report the test result to the user and state that the setup is ready
 
-## 一般的なMCPサーバーのカテゴリ
+## Common MCP server categories
 
-検索する際は、以下のカテゴリとキーワードを参考にしてください：
+Use the following categories and query examples as search hints:
 
-| カテゴリ | 検索キーワード例 | よくある用途 |
+| Category | Example search keywords | Common use cases |
 | --- | --- | --- |
-| データベース | `postgres`, `sqlite`, `mysql` | データの検索、集計、書き込み |
-| 開発ツール | `github`, `gitlab`, `git` | コード検索、PR作成、Issue管理 |
-| コミュニケーション | `slack`, `discord` | メッセージ送信、チャンネル読み取り |
-| ファイル・OS | `filesystem`, `bash`, `cli` | ローカルファイルの操作、コマンド実行 |
-| 情報検索 | `brave`, `google`, `wikipedia` | Web検索、最新情報の取得 |
+| Database | `postgres`, `sqlite`, `mysql` | Data search, aggregation, writes |
+| Development tools | `github`, `gitlab`, `git` | Code search, PR creation, issue management |
+| Communication | `slack`, `discord` | Sending messages, reading channels |
+| Files and OS | `filesystem`, `bash`, `cli` | Local file operations, command execution |
+| Information lookup | `brave`, `google`, `wikipedia` | Web search, current information retrieval |
 
-## MCPサーバーが見つからない・機能が不足している場合
+## If no MCP server is found or the functionality is insufficient
 
-目的に合うMCPサーバーが存在しない場合：
+If no MCP server satisfies the user's goal:
 
-1. 既存のMCPサーバーでは要件を満たせないことを伝える。
-2. 代替手段（エージェント自身の標準機能での対応など）を提案する。
-3. **カスタムMCPサーバーの開発**を提案する。（例：「PythonやTypeScriptを使って、専用のMCPサーバーを自作するお手伝いをしましょうか？」）
+1. Tell the user that existing MCP servers do not satisfy the requirement
+2. Propose alternative approaches, such as using the agent's built-in capabilities
+3. Propose **developing a custom MCP server**, for example by offering to help build a dedicated MCP server in Python or TypeScript

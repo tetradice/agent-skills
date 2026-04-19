@@ -5,6 +5,7 @@ GitHub Copilot や互換エージェントで利用可能なAgent Skillです。
 ## 内容
 
 - `find-mcp-server`: 公開MCPサーバーの検索とインストールを行うスキル
+- `find-mcp-server-ja`: 公開MCPサーバーの検索とインストールを行うスキル（日本語版）
 
 ## インストール方法
 
@@ -12,7 +13,10 @@ GitHub Copilot や互換エージェントで利用可能なAgent Skillです。
 
 ```
 % npx skills add https://github.com/tetradice/agent-skills --skill find-mcp-server
+% npx skills add https://github.com/tetradice/agent-skills --skill find-mcp-server-ja
 ```
+
+機能はどちらも同じです。「SKILL.md が日本語で書かれていた方が、理解や編集をしやすい」という方は `find-mcp-server-ja` を使用してください。
 
 ## ライセンス
 
