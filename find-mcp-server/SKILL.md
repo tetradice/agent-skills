@@ -147,16 +147,16 @@ Once you find MCP servers that satisfy the requirements, first present the candi
 
 If there is an official candidate, place it first in the presented options and clearly state that it is official. Do not list a non-official candidate first unless the official candidate does not satisfy the requirements.
 
-Only when the user explicitly says they want to install should you use the `askQuestions` tool to confirm the necessary details.
+Only when the user explicitly says they want to install should you confirm the necessary details. If the current agent supports the `askQuestions` tool, prefer it. If not, ask for the same items in normal chat and wait for the user's reply.
 
-At that point, if there is already at least one valid candidate, move directly into `askQuestions` in the first reply that presents the candidates. Do not ask for a freeform yes or no first and only switch to `askQuestions` in the next turn.
+At that point, if there is already at least one valid candidate, move directly into the required confirmation in the first reply that presents the candidates. Use `askQuestions` immediately when it is available, or ask the same questions in normal chat when it is not. Do not ask for a freeform yes or no first and only switch to the required install details in the next turn.
 
-- If there are multiple candidates and the user has not yet specified which one to install, use `askQuestions` to confirm all of the following.
+- If there are multiple candidates and the user has not yet specified which one to install, confirm all of the following, using `askQuestions` when available and normal chat otherwise.
   1. Which MCP server to install
   2. Whether to install it for the project or globally
   3. What display name to use for the MCP server
 
-- If there is only one candidate, or the install target is already clear even with multiple candidates, use `askQuestions` to confirm the following.
+- If there is only one candidate, or the install target is already clear even with multiple candidates, confirm the following, using `askQuestions` when available and normal chat otherwise.
   1. Whether to install it for the project or globally
   2. What display name to use for the MCP server
 
@@ -175,12 +175,12 @@ In the initial candidate presentation, you do not need to enumerate the full too
 
 If the same candidate appears from multiple sources such as Registry, Smithery, and GitHub, merge them into a single row only when you have verified that they refer to the same candidate through matching `repositoryUrl`, repo owner/name, install target, official endpoint, or equivalent evidence. If not, keep them separate and explicitly say that they may be the same candidate but it is not confirmed.
 
-As a rule, the first `askQuestions` set should stay limited to the required items defined in this step. Authentication method, transport, Docker availability, and additional environment variables should be deferred if they only become meaningful after the candidate is fixed. However, if there is only one candidate and extra information is required immediately to finalize the install command, you may include it in the same `askQuestions` call.
+As a rule, the first confirmation set should stay limited to the required items defined in this step. Authentication method, transport, Docker availability, and additional environment variables should be deferred if they only become meaningful after the candidate is fixed. However, if there is only one candidate and extra information is required immediately to finalize the install command, you may include it in the same confirmation flow.
 
-Example `askQuestions` structure:
+Example confirmation structure:
 
 ```
-There are two candidates that fit your request. If you want to install one, use the askQuestions tool to choose the required details.
+There are two candidates that fit your request. If you want to install one, use the askQuestions tool when it is available. If it is not available in the current agent, reply in normal chat with the required details.
 
 - Candidate A: mcp-server-github
 	- Summary: Supports GitHub repository search, issue creation, and pull request review
@@ -191,7 +191,7 @@ There are two candidates that fit your request. If you want to install one, use 
 	- Main tools: search_code, list_issues
 	- Installation method: npm package
 
-Use askQuestions to confirm:
+Confirm:
 1. Which MCP server to install, if not already specified
 2. Whether to install it for the project or globally
 3. What display name to use for the MCP server
@@ -199,7 +199,7 @@ Use askQuestions to confirm:
 
 ### Step 5: Run the installation
 
-If the user wants installation and `askQuestions` has fixed the install target, scope, and display name, execute the installation according to those choices. If the user says not to install, stop there.
+If the user wants installation and the install target, scope, and display name have been fixed through `askQuestions` or normal chat, execute the installation according to those choices. If the user says not to install, stop there.
 
 **For npm package-based servers, meaning servers that can be run with `npx -y [npm-package-name]`:**
 ```bash
@@ -217,10 +217,10 @@ npx add-mcp [HTTP URL]
 ```
 
 If none of those forms applies, check whether the installation can be handled by manually editing the MCP JSON file.
-If that is possible, use the `askQuestions` tool to confirm whether the user is okay with directly editing the JSON file, then do so.
+If that is possible, confirm whether the user is okay with directly editing the JSON file. Use `askQuestions` when available, or normal chat when it is not, and then proceed.
 If that is not possible, tell the user that the current `add-mcp` command cannot install it and propose an alternative, such as helping them build a custom MCP server.
 
-If `add-mcp` uses different options for global versus project installation, select the appropriate form based on the user's choice. If the display name needs to be reflected, use the `-n` or `--name` option with the value confirmed through `askQuestions`.
+If `add-mcp` uses different options for global versus project installation, select the appropriate form based on the user's choice. If the display name needs to be reflected, use the `-n` or `--name` option with the value confirmed through `askQuestions` or normal chat.
 
 Example:
 
